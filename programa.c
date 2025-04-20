@@ -1,31 +1,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 typedef struct
 {
     char nome[100];
     int pontuacao;
     int vidas;
+    char resposta;
 } Jogador;
 
 typedef struct
 {
     char pergunta[1000];
-    char resposta[1000];
-    char opcaoA[1000];
-    char opcaoB[1000];
-    char opcaoC[1000];
-    char opcaoD[1000];
+    char opcaoCerta[1000];
+    char opcaoErrada1[1000];
+    char opcaoErrada2[1000];
+    char opcaoErrada3[1000];
 } Questao;
 
 typedef struct
 {
-    Questao questoes[3];
+    Questao questoes[100];
+    int quantidadeQuestoes;
 } ListaQuestoes;
 
-Questao montarQuestao(char dificuldade[15]);
-Questao fazerPerguntaMuitoFacil(ListaQuestoes lista);
+typedef struct
+{
+    char letra;
+    char texto[1000];
+    int correta;
+} Alternativa;
+
+void embaralharAlternativas(Questao questao, Alternativa embaralhadas[4]);
+void mostrarQuestao(Questao questao, Alternativa alternativas[4]);
+int verificarResposta(Alternativa alternativas[4], char respostaUsuario);
+Questao obterQuestao(char dificuldade[15]);
+Questao obterPergunta(ListaQuestoes lista);
+void adicionarQuestao(ListaQuestoes *lista, Questao questao);
 ListaQuestoes criarQuestoesMuitoFaceis();
 
 int main()
@@ -39,24 +52,41 @@ int main()
     while (jogador.vidas > 0)
     {
         char dificuldade[15];
-        if (jogador.pontuacao = 0) //muito facil
+        Alternativa alternativas[4];
+        switch (jogador.pontuacao)
         {
-            strcopy(dificuldade, "muitoFacil");
-            Questao questao = montarQuestao(dificuldade);
-            printf("resposta: %s\n", questao.resposta);
-            printf("opcao: ");
-            char opcao;
-            scanf(" %c", &opcao);
-            if (opcao == questao.resposta[0])
-            {
-                jogador.pontuacao += 1;
-                printf("acertou!\n");
-            }
-            else
-            {
-                jogador.vidas--;
-                printf("errou! vidas restantes: %d\n", jogador.vidas);
-            }
+        case 0:
+            strcpy(dificuldade, "muitoFacil");
+            break;
+        case 1:
+            strcpy(dificuldade, "facil");
+            break;
+        case 2:
+            strcpy(dificuldade, "media");
+            break;
+        case 3:
+            strcpy(dificuldade, "dificil");
+            break;
+        case 4:
+            strcpy(dificuldade, "muitoDificil");
+            break;
+        default:
+            break;
+        }
+        Questao questao = obterQuestao(dificuldade);
+        embaralharAlternativas(questao, alternativas);
+        mostrarQuestao(questao, alternativas);
+        printf("Digite a letra da resposta (em maiusculas): ");
+        scanf(" %c", &jogador.resposta);
+        if (verificarResposta(alternativas, jogador.resposta) == 1)
+        {
+            jogador.pontuacao++;
+            printf("acertou!\n");
+        }
+        else
+        {
+            jogador.vidas--;
+            printf("errou! vidas restantes: %d\n", jogador.vidas);
         }
 
         if (jogador.vidas == 0)
@@ -65,15 +95,67 @@ int main()
             printf("sua pontuacao foi: %d\n", jogador.pontuacao);
             break;
         }
+        else if (jogador.pontuacao == 5)
+        {
+            printf("parabens, voce ganhou o jogo!\n");
+            printf("sua pontuacao foi: %d\n", jogador.pontuacao);
+            break;
+        }
     }
 }
 
-Questao montarQuestao(char dificuldade[15])
+void embaralharAlternativas(Questao questao, Alternativa embaralhadas[4])
+{
+    strcpy(embaralhadas[0].texto, questao.opcaoCerta);
+    embaralhadas[0].correta = 1;
+    strcpy(embaralhadas[1].texto, questao.opcaoErrada1);
+    embaralhadas[1].correta = 0;
+    strcpy(embaralhadas[2].texto, questao.opcaoErrada2);
+    embaralhadas[2].correta = 0;
+    strcpy(embaralhadas[3].texto, questao.opcaoErrada3);
+    embaralhadas[3].correta = 0;
+
+    srand(time(NULL));
+    for (int i = 3; i > 0; i--)
+    {
+        int j = rand() % (i + 1);
+        Alternativa temp = embaralhadas[i];
+        embaralhadas[i] = embaralhadas[j];
+        embaralhadas[j] = temp;
+    }
+    for (int i = 0; i < 4; i++)
+    {
+        embaralhadas[i].letra = 'A' + i;
+    }
+}
+
+void mostrarQuestao(Questao questao, Alternativa alternativas[4])
+{
+    printf("%s\n", questao.pergunta);
+    for (int i = 0; i < 4; i++)
+    {
+        printf("%c: %s\n", alternativas[i].letra, alternativas[i].texto);
+    }
+}
+
+int verificarResposta(Alternativa alternativas[4], char respostaUsuario)
+{
+    for (int i = 0; i < 4; i++)
+    {
+        if (alternativas[i].letra == respostaUsuario)
+        {
+            return alternativas[i].correta;
+        }
+    }
+    return 0;
+}
+
+Questao obterQuestao(char dificuldade[15])
 {
     if (strcmp(dificuldade, "muitoFacil") == 0)
     {
         ListaQuestoes lista = criarQuestoesMuitoFaceis();
-        Questao questaoFacil = fazerPerguntaMuitoFacil(lista);
+        Questao questaoFacil = obterPergunta(lista);
         return questaoFacil;
     }
     else if (strcmp(dificuldade, "facil") == 0)
@@ -83,46 +165,57 @@ Questao montarQuestao(char dificuldade[15])
     else if (strcmp(dificuldade, "media") == 0)
     {
         // criarQuestaoMedia();
-    } else if (strcmp(dificuldade, "dificil") == 0)
+    }
+    else if (strcmp(dificuldade, "dificil") == 0)
     {
         // criarQuestaoDificil();
-    } else if (strcmp(dificuldade, "muitoDificil") == 0)
+    }
+    else if (strcmp(dificuldade, "muitoDificil") == 0)
     {
         // criarQuestaoMuitoDificil();
     }
 }
 
-Questao fazerPerguntaMuitoFacil(ListaQuestoes lista)
+Questao obterPergunta(ListaQuestoes lista)
 {
-    Questao questao = lista.questoes[0];
-    printf("%s\n", questao.pergunta);
-    printf("A - %s\nB - %s\nC - %s\nD - %s\n", questao.opcaoA, questao.opcaoB, questao.opcaoC, questao.opcaoD);
-    char opcao;
-    scanf(" %c", &opcao);
-    return questao;
+    srand(time(NULL));
+    int i = rand() % lista.quantidadeQuestoes;
+    return lista.questoes[i];
+}
+
+void adicionarQuestao(ListaQuestoes *lista, Questao questao) {
+    lista->questoes[lista->quantidadeQuestoes] = questao;
+    lista->quantidadeQuestoes++;
 }
 
 ListaQuestoes criarQuestoesMuitoFaceis()
 {
     ListaQuestoes lista;
+    lista.quantidadeQuestoes = 0;
 
-    strcpy(lista.questoes[0].pergunta, "essa eh a pergunta muito facil 1: ");
-    strcpy(lista.questoes[0].opcaoA, "aviao");
-    strcpy(lista.questoes[0].opcaoB, "bola");
-    strcpy(lista.questoes[0].opcaoC, "casa");
-    strcpy(lista.questoes[0].opcaoD, "dado");
+    Questao q1;
+    strcpy(q1.pergunta, "essa eh a pergunta muito facil 1: ");
+    strcpy(q1.opcaoCerta, "aviao");
+    strcpy(q1.opcaoErrada1, "bola");
+    strcpy(q1.opcaoErrada2, "casa");
+    strcpy(q1.opcaoErrada3, "dado");
+    adicionarQuestao(&lista, q1);
 
-    strcpy(lista.questoes[1].pergunta, "essa eh a pergunta muito facil 2: ");
-    strcpy(lista.questoes[1].opcaoA, "aviao");
-    strcpy(lista.questoes[1].opcaoB, "bola");
-    strcpy(lista.questoes[1].opcaoC, "casa");
-    strcpy(lista.questoes[1].opcaoD, "dado");
+    Questao q2;
+    strcpy(q2.pergunta, "essa eh a pergunta muito facil 1: ");
+    strcpy(q2.opcaoCerta, "aviao");
+    strcpy(q2.opcaoErrada1, "bola");
+    strcpy(q2.opcaoErrada2, "casa");
+    strcpy(q2.opcaoErrada3, "dado");
+    adicionarQuestao(&lista, q2);
 
-    strcpy(lista.questoes[2].pergunta, "essa eh a pergunta facil 3: ");
-    strcpy(lista.questoes[2].opcaoA, "aviao");
-    strcpy(lista.questoes[2].opcaoB, "bola");
-    strcpy(lista.questoes[2].opcaoC, "casa");
-    strcpy(lista.questoes[2].opcaoD, "dado");
+    Questao q3;
+    strcpy(q3.pergunta, "essa eh a pergunta muito facil 1: ");
+    strcpy(q3.opcaoCerta, "aviao");
+    strcpy(q3.opcaoErrada1, "bola");
+    strcpy(q3.opcaoErrada2, "casa");
+    strcpy(q3.opcaoErrada3, "dado");
+    adicionarQuestao(&lista, q3);
 
     return lista;
 }
