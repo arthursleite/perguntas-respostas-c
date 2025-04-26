@@ -159,24 +159,32 @@ Questao obterQuestao(char dificuldade[15])
     if (strcmp(dificuldade, "muitoFacil") == 0)
     {
         ListaQuestoes lista = criarQuestoesMuitoFaceis();
-        Questao questaoFacil = obterPergunta(lista);
-        return questaoFacil;
+        Questao questaoMuitoFacil = obterPergunta(lista);
+        return questaoMuitoFacil;
     }
     else if (strcmp(dificuldade, "facil") == 0)
     {
-        // criarQuestaoFacil();
+        ListaQuestoes lista = criarQuestoesFaceis();
+        Questao questaoFacil = obterPergunta(lista);
+        return questaoFacil;
     }
     else if (strcmp(dificuldade, "media") == 0)
     {
-        // criarQuestaoMedia();
+        ListaQuestoes lista = criarQuestoesMedias();
+        Questao questaoMedia = obterPergunta(lista);
+        return questaoMedia;
     }
     else if (strcmp(dificuldade, "dificil") == 0)
     {
-        // criarQuestaoDificil();
+        ListaQuestoes lista = criarQuestoesDificeis();
+        Questao questaoDificil = obterPergunta(lista);
+        return questaoDificil;
     }
     else if (strcmp(dificuldade, "muitoDificil") == 0)
     {
-        // criarQuestaoMuitoDificil();
+        ListaQuestoes lista = criarQuestoesMuitoDificeis();
+        Questao questaoMuitoDificil = obterPergunta(lista);
+        return questaoMuitoDificil;
     }
 }
 
@@ -214,7 +222,7 @@ ListaQuestoes criarQuestoesMuitoFaceis()
     adicionarQuestao(&lista, q2);
 
     Questao q3;
-    strcpy(q3.pergunta, "Qual simbolo é usado para comentar uma linha de código em C?");
+    strcpy(q3.pergunta, "Qual simbolo eh usado para comentar uma linha de codigo em C?");
     strcpy(q3.opcaoCerta, "//");
     strcpy(q3.opcaoErrada1, "/*");
     strcpy(q3.opcaoErrada2, "#");
@@ -251,6 +259,8 @@ ListaQuestoes criarQuestoesFaceis() {
     strcpy(q3.opcaoErrada2, "Definir funcoes.");
     strcpy(q3.opcaoErrada3, "Declarar variaveis constantes no programa.");
     adicionarQuestao(&lista, q3);
+
+    return lista;
 }
 
 ListaQuestoes criarQuestoesMedias() {
@@ -266,7 +276,7 @@ ListaQuestoes criarQuestoesMedias() {
     adicionarQuestao(&lista, q1);
 
     Questao q2;
-    strcpy(q2.pergunta, "O que a função sizeof retorna em C?");
+    strcpy(q2.pergunta, "O que a funcao sizeof retorna em C?");
     strcpy(q2.opcaoCerta, "O numero de bytes ocupado por um tipo ou variavel.");
     strcpy(q2.opcaoErrada1, "A quantidade de variáveis declaradas.");
     strcpy(q2.opcaoErrada2, "A capacidade máxima de memória do computador.");
@@ -280,6 +290,8 @@ ListaQuestoes criarQuestoesMedias() {
     strcpy(q3.opcaoErrada2, "& (AND)");
     strcpy(q3.opcaoErrada3, "^ (XOR)");
     adicionarQuestao(&lista, q3);
+
+    return lista;
 }
 
 ListaQuestoes criarQuestoesDificeis() {
@@ -293,4 +305,53 @@ ListaQuestoes criarQuestoesDificeis() {
     strcpy(q1.opcaoErrada2, "Memoria global.");
     strcpy(q1.opcaoErrada3, "Memoria flash.");
     adicionarQuestao(&lista, q1);
+
+    Questao q2;
+    strcpy(q2.pergunta, "Qual a importancia do uso de const em parametros de funcoes?");
+    strcpy(q2.opcaoCerta, "Garantir que o parametro nao sera modificado.");
+    strcpy(q2.opcaoErrada1, "Aumentar a velocidade da funcao.");
+    strcpy(q2.opcaoErrada2, "Permitir que o valor seja alterado.");
+    strcpy(q2.opcaoErrada3, "Memoria flash.");
+    adicionarQuestao(&lista, q2);
+
+    Questao q3;
+    strcpy(q3.pergunta, "Qual eh o principal risco de usar recursao em profundidade (ex: calculo fatorial para 'n' grande) em C?");
+    strcpy(q3.opcaoCerta, "Stack overflow devido ao excesso de chamadas aninhadas");
+    strcpy(q3.opcaoErrada1, "Integer overflow no resultado");
+    strcpy(q3.opcaoErrada2, "Corrupcao de memoria no heap");
+    strcpy(q3.opcaoErrada3, "Loop infinito se a condicao de parada for mal definida");
+    adicionarQuestao(&lista, q3);
+
+    return lista;
+}
+
+ListaQuestoes criarQuestoesMuitoDificeis() {
+    ListaQuestoes lista;
+    lista.quantidadeQuestoes = 0;
+
+    Questao q1;
+    strcpy(q1.pergunta, "Como funciona a 'Stack' e o 'Heap' em um programa C?");
+    strcpy(q1.opcaoCerta, "Stack eh para variaveis locais, Heap eh para dados dinamicos.");
+    strcpy(q1.opcaoErrada1, "Stack eh para dados dinamicos e Heap para dados automaticos.");
+    strcpy(q1.opcaoErrada2, "Stack eh para alocacao dinamica, Heap eh para variaveis locais.");
+    strcpy(q1.opcaoErrada3, "Stack e Heap sao usados da mesma forma.");
+    adicionarQuestao(&lista, q1);
+
+    Questao q2;
+    strcpy(q2.pergunta, "O que eh 'undefined behavior' em C?");
+    strcpy(q2.opcaoCerta, "Quando o programa se comporta de forma imprevisivel.");
+    strcpy(q2.opcaoErrada1, "Um erro de compilacao.");
+    strcpy(q2.opcaoErrada2, "Um warning que nao afeta o programa.");
+    strcpy(q2.opcaoErrada3, "Um modo de otimizar codigo.");
+    adicionarQuestao(&lista, q2);
+
+    Questao q3;
+    strcpy(q3.pergunta, "Qual eh o resultado do seguinte código em C?\n\nint matriz[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};\nint *ptr = (int *)matriz;\nprintf(\"%d\", *(ptr + 5));");
+    strcpy(q3.opcaoCerta, "6");
+    strcpy(q3.opcaoErrada1, "5");
+    strcpy(q3.opcaoErrada2, "4");
+    strcpy(q3.opcaoErrada3, "7");
+    adicionarQuestao(&lista, q3);
+
+    return lista;
 }
