@@ -169,24 +169,29 @@ Questao obterQuestao(char dificuldade[15])
 {
     if (strcmp(dificuldade, "muitoFacil") == 0)
     {
+        puts("> Dificuldade: Muito facil");
         ListaQuestoes lista = criarQuestoesMuitoFaceis();
         Questao questaoFacil = obterPergunta(lista);
         return questaoFacil;
     }
     else if (strcmp(dificuldade, "facil") == 0)
     {
+        puts("> Dificuldade: Facil");
         // criarQuestaoFacil();
     }
     else if (strcmp(dificuldade, "media") == 0)
     {
+        puts("> Dificuldade: Media");
         // criarQuestaoMedia();
     }
     else if (strcmp(dificuldade, "dificil") == 0)
     {
+        puts("> Dificuldade: Dificil");
         // criarQuestaoDificil();
     }
     else if (strcmp(dificuldade, "muitoDificil") == 0)
     {
+        puts("> Dificuldade: Muito dificil");
         // criarQuestaoMuitoDificil();
     }
 }
