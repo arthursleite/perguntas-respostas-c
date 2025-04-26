@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
+#include<windows.h>
 
 typedef struct
 {
@@ -40,13 +42,17 @@ Questao obterQuestao(char dificuldade[15]);
 Questao obterPergunta(ListaQuestoes lista);
 void adicionarQuestao(ListaQuestoes *lista, Questao questao);
 ListaQuestoes criarQuestoesMuitoFaceis();
+void mostrarPontosEVidas(Jogador jogador);
 
 int main()
 {
-    printf("bem vindo ao jogo");
-    printf("digite seu nome: ");
+
+    printf("== Bem vindo ao Jogo de Perguntas e Respostas ==\n");
+    printf("Insira seu nome: \n > ");
     Jogador jogador;
     scanf("%s", jogador.nome);
+    printf("Cadastro realizado! Boa sorte, %s.\n\n", jogador.nome);
+    Sleep(1000);
     jogador.pontuacao = 0;
     jogador.vidas = 3;
     while (jogador.vidas > 0)
@@ -76,29 +82,38 @@ int main()
         Questao questao = obterQuestao(dificuldade);
         embaralharAlternativas(questao, alternativas);
         mostrarQuestao(questao, alternativas);
-        printf("Digite a letra da resposta (em maiusculas): ");
+        printf(" > Letra: ");
         scanf(" %c", &jogador.resposta);
+        jogador.resposta = toupper(jogador.resposta);
         if (verificarResposta(alternativas, jogador.resposta) == 1)
         {
             jogador.pontuacao++;
-            printf("acertou!\n");
+            printf("\nCerta resposta!\n");
+            mostrarPontosEVidas(jogador);
+            Sleep(1000);
         }
         else
         {
             jogador.vidas--;
-            printf("errou! vidas restantes: %d\n", jogador.vidas);
+            printf("\nResposta errada!\n");
+            mostrarPontosEVidas(jogador);
+            Sleep(1000);
         }
 
         if (jogador.vidas == 0)
         {
-            printf("game over\n");
-            printf("sua pontuacao foi: %d\n", jogador.pontuacao);
+            puts("=================================");
+            printf("Game over - Voce ficou sem vidas\n");
+            printf("Nome: %s\nPontuacao: %d\n", jogador.nome, jogador.pontuacao);
+            puts("=================================");
             break;
         }
         else if (jogador.pontuacao == 5)
         {
-            printf("parabens, voce ganhou o jogo!\n");
-            printf("sua pontuacao foi: %d\n", jogador.pontuacao);
+            puts("==============================");
+            printf("Parabens! Voce ganhou o jogo!\n");
+            printf("Sua pontuacao foi: %d\n", jogador.pontuacao);
+            puts("==============================");
             break;
         }
     }
@@ -218,4 +233,9 @@ ListaQuestoes criarQuestoesMuitoFaceis()
     adicionarQuestao(&lista, q3);
 
     return lista;
+}
+
+void mostrarPontosEVidas(Jogador jogador) {
+    printf("Pontos: %d\n", jogador.pontuacao);
+    printf("Vidas restantes: %d\n\n", jogador.vidas);
 }
