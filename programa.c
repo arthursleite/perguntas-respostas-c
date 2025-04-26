@@ -194,28 +194,30 @@ ListaQuestoes criarQuestoesMuitoFaceis()
     lista.quantidadeQuestoes = 0;
 
     Questao q1;
-    strcpy(q1.pergunta, "essa eh a pergunta muito facil 1: ");
-    strcpy(q1.opcaoCerta, "aviao");
-    strcpy(q1.opcaoErrada1, "bola");
-    strcpy(q1.opcaoErrada2, "casa");
-    strcpy(q1.opcaoErrada3, "dado");
+    strcpy(q1.pergunta, "Qual eh o tipo de dado usado para armazenar valores inteiros em C?");
+    strcpy(q1.opcaoCerta, "int");
+    strcpy(q1.opcaoErrada1, "char");
+    strcpy(q1.opcaoErrada2, "bool");
+    strcpy(q1.opcaoErrada3, "float");
     adicionarQuestao(&lista, q1);
 
     Questao q2;
-    strcpy(q2.pergunta, "essa eh a pergunta muito facil 1: ");
-    strcpy(q2.opcaoCerta, "aviao");
-    strcpy(q2.opcaoErrada1, "bola");
-    strcpy(q2.opcaoErrada2, "casa");
-    strcpy(q2.opcaoErrada3, "dado");
+    strcpy(q2.pergunta, "Qual funcao padrao da linguagem C eh usada para ler a entrada do usuario?");
+    strcpy(q2.opcaoCerta, "scanf");
+    strcpy(q2.opcaoErrada1, "printf");
+    strcpy(q2.opcaoErrada2, "input");
+    strcpy(q2.opcaoErrada3, "puts");
     adicionarQuestao(&lista, q2);
 
     Questao q3;
-    strcpy(q3.pergunta, "essa eh a pergunta muito facil 1: ");
-    strcpy(q3.opcaoCerta, "aviao");
-    strcpy(q3.opcaoErrada1, "bola");
-    strcpy(q3.opcaoErrada2, "casa");
-    strcpy(q3.opcaoErrada3, "dado");
+    strcpy(q3.pergunta, "Qual símbolo é usado para comentar uma linha de código em C?");
+    strcpy(q3.opcaoCerta, "//");
+    strcpy(q3.opcaoErrada1, "/*");
+    strcpy(q3.opcaoErrada2, "#");
+    strcpy(q3.opcaoErrada3, "--");
     adicionarQuestao(&lista, q3);
+
+    
 
     return lista;
 }
