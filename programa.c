@@ -3,7 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
-#include<windows.h>
+#include <windows.h>
 
 typedef struct
 {
@@ -38,7 +38,7 @@ typedef struct
 void embaralharAlternativas(Questao questao, Alternativa embaralhadas[4]);
 void mostrarQuestao(Questao questao, Alternativa alternativas[4]);
 int verificarResposta(Alternativa alternativas[4], char respostaUsuario);
-Questao obterQuestao(char dificuldade[15]);
+Questao obterQuestao(int pontuacao);
 Questao obterPergunta(ListaQuestoes lista);
 void adicionarQuestao(ListaQuestoes *lista, Questao questao);
 ListaQuestoes criarQuestoesMuitoFaceis();
@@ -63,32 +63,26 @@ int main()
     {
         char dificuldade[15];
         Alternativa alternativas[4];
-        switch (jogador.pontuacao)
-        {
-        case 0:
-            strcpy(dificuldade, "muitoFacil");
-            break;
-        case 1:
-            strcpy(dificuldade, "facil");
-            break;
-        case 2:
-            strcpy(dificuldade, "media");
-            break;
-        case 3:
-            strcpy(dificuldade, "dificil");
-            break;
-        case 4:
-            strcpy(dificuldade, "muitoDificil");
-            break;
-        default:
-            break;
-        }
-        Questao questao = obterQuestao(dificuldade);
+
+        Questao questao = obterQuestao(jogador.pontuacao);
         embaralharAlternativas(questao, alternativas);
         mostrarQuestao(questao, alternativas);
-        printf(" > Letra: ");
-        scanf(" %c", &jogador.resposta);
-        jogador.resposta = toupper(jogador.resposta);
+        int contador = 0;
+        do
+        {
+            if (contador > 0)
+            {
+                printf("Alternativa invalida! Digite novamente: \n");
+            }
+            printf(" > Letra: ");
+            scanf(" %c", &jogador.resposta);
+            jogador.resposta = toupper(jogador.resposta);
+            if (jogador.resposta < 65 || jogador.resposta > 68)
+            {
+                contador++;
+            }
+        } while (jogador.resposta < 65 || jogador.resposta > 68);
+
         if (verificarResposta(alternativas, jogador.resposta) == 1)
         {
             jogador.pontuacao++;
@@ -169,42 +163,47 @@ int verificarResposta(Alternativa alternativas[4], char respostaUsuario)
     return 0;
 }
 
-Questao obterQuestao(char dificuldade[15])
+Questao obterQuestao(int pontuacao)
 {
-    if (strcmp(dificuldade, "muitoFacil") == 0)
+    if (pontuacao == 0)
     {
         puts("> Dificuldade: Muito facil");
         ListaQuestoes lista = criarQuestoesMuitoFaceis();
         Questao questaoMuitoFacil = obterPergunta(lista);
         return questaoMuitoFacil;
     }
-    else if (strcmp(dificuldade, "facil") == 0)
+    else if (pontuacao == 1)
     {
         puts("> Dificuldade: Facil");
         ListaQuestoes lista = criarQuestoesFaceis();
         Questao questaoFacil = obterPergunta(lista);
         return questaoFacil;
     }
-    else if (strcmp(dificuldade, "media") == 0)
+    else if (pontuacao == 2)
     {
         puts("> Dificuldade: Media");
         ListaQuestoes lista = criarQuestoesMedias();
         Questao questaoMedia = obterPergunta(lista);
         return questaoMedia;
     }
-    else if (strcmp(dificuldade, "dificil") == 0)
+    else if (pontuacao == 3)
     {
         puts("> Dificuldade: Dificil");
         ListaQuestoes lista = criarQuestoesDificeis();
         Questao questaoDificil = obterPergunta(lista);
         return questaoDificil;
     }
-    else if (strcmp(dificuldade, "muitoDificil") == 0)
+    else if (pontuacao == 4)
     {
         puts("> Dificuldade: Muito dificil");
         ListaQuestoes lista = criarQuestoesMuitoDificeis();
         Questao questaoMuitoDificil = obterPergunta(lista);
         return questaoMuitoDificil;
+    }
+    else
+    {
+        fprintf(stderr, "Erro: dificuldade inválida.\n");
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -215,7 +214,8 @@ Questao obterPergunta(ListaQuestoes lista)
     return lista.questoes[i];
 }
 
-void adicionarQuestao(ListaQuestoes *lista, Questao questao) {
+void adicionarQuestao(ListaQuestoes *lista, Questao questao)
+{
     lista->questoes[lista->quantidadeQuestoes] = questao;
     lista->quantidadeQuestoes++;
 }
@@ -252,7 +252,8 @@ ListaQuestoes criarQuestoesMuitoFaceis()
     return lista;
 }
 
-ListaQuestoes criarQuestoesFaceis() {
+ListaQuestoes criarQuestoesFaceis()
+{
     ListaQuestoes lista;
     lista.quantidadeQuestoes = 0;
 
@@ -283,7 +284,8 @@ ListaQuestoes criarQuestoesFaceis() {
     return lista;
 }
 
-ListaQuestoes criarQuestoesMedias() {
+ListaQuestoes criarQuestoesMedias()
+{
     ListaQuestoes lista;
     lista.quantidadeQuestoes = 0;
 
@@ -314,7 +316,8 @@ ListaQuestoes criarQuestoesMedias() {
     return lista;
 }
 
-ListaQuestoes criarQuestoesDificeis() {
+ListaQuestoes criarQuestoesDificeis()
+{
     ListaQuestoes lista;
     lista.quantidadeQuestoes = 0;
 
@@ -345,7 +348,8 @@ ListaQuestoes criarQuestoesDificeis() {
     return lista;
 }
 
-ListaQuestoes criarQuestoesMuitoDificeis() {
+ListaQuestoes criarQuestoesMuitoDificeis()
+{
     ListaQuestoes lista;
     lista.quantidadeQuestoes = 0;
 
@@ -366,7 +370,7 @@ ListaQuestoes criarQuestoesMuitoDificeis() {
     adicionarQuestao(&lista, q2);
 
     Questao q3;
-    strcpy(q3.pergunta, "Qual eh o resultado do seguinte código em C?\n\nint matriz[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};\nint *ptr = (int *)matriz;\nprintf(\"%d\", *(ptr + 5));");
+    strcpy(q3.pergunta, "Qual eh o resultado do seguinte codigo em C?\n\nint matriz[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};\nint *ptr = (int *)matriz;\nprintf(\"%d\", *(ptr + 5));");
     strcpy(q3.opcaoCerta, "6");
     strcpy(q3.opcaoErrada1, "5");
     strcpy(q3.opcaoErrada2, "4");
@@ -376,7 +380,8 @@ ListaQuestoes criarQuestoesMuitoDificeis() {
     return lista;
 }
 
-void mostrarPontosEVidas(Jogador jogador) {
+void mostrarPontosEVidas(Jogador jogador)
+{
     printf("Pontos: %d\n", jogador.pontuacao);
     printf("Vidas restantes: %d\n\n", jogador.vidas);
 }
