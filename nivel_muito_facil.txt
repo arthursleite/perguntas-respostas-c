@@ -1,0 +1,20 @@
+Qual eh o tipo de dado usado para armazenar valores inteiros em C?
+A) int
+B) char
+C) bool
+D) float
+RESPOSTA:A
+
+Qual funcao padrao da linguagem C eh usada para ler a entrada do usuario?
+A) printf
+B) scanf
+C) input
+D) puts
+RESPOSTA:B
+
+Qual simbolo eh usado para comentar uma linha de codigo em C?
+A) /*
+B) //
+C) #
+D) --
+RESPOSTA:B 
