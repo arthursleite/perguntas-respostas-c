@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
+#include <locale.h>
 
 #ifdef _WIN32
     #include <windows.h>
@@ -13,11 +14,11 @@
 #endif
 
 const char* NOMES_DIFICULDADE[] = {
-    "Muito facil",
-    "Facil", 
-    "Media",
-    "Dificil",
-    "Muito dificil"
+    "Muito fácil",
+    "Fácil", 
+    "Média",
+    "Difícil",
+    "Muito difícil"
 };
 
 const char* ARQUIVOS_DIFICULDADE[] = {
@@ -82,7 +83,13 @@ void liberarAlternativasEmbaralhadas(Alternativa *alternativas, int numAlternati
 
 int main()
 {
-    printf("== Bem vindo ao Jogo de Perguntas e Respostas ==\n\n");
+    setlocale(LC_ALL, "");
+    
+#ifdef _WIN32
+    SetConsoleOutputCP(65001);
+#endif
+    
+    printf("== Bem-vindo ao Jogo de Perguntas e Respostas ==\n\n");
     
     int opcao;
     do {
@@ -98,10 +105,10 @@ int main()
                 jogar();
                 break;
             case MENU_SAIR:
-                printf("\nObrigado por jogar! Ate a proxima!\n");
+                printf("\nObrigado por jogar! Até a próxima!\n");
                 break;
             default:
-                printf("\nOpcao invalida! Tente novamente.\n\n");
+                printf("\nOpção inválida! Tente novamente.\n\n");
                 break;
         }
     } while (opcao != MENU_SAIR);
@@ -382,9 +389,9 @@ void mostrarMenu()
 int lerOpcaoMenu()
 {
     int opcao;
-    printf("Escolha uma opcao: ");
+    printf("Escolha uma opção: ");
     if (scanf("%d", &opcao) != 1) {
-        printf("Entrada invalida! Digite um numero.\n");
+        printf("Entrada inválida! Digite um número.\n");
         int c;
         while ((c = getchar()) != '\n' && c != EOF);
         return -1; 
@@ -424,14 +431,14 @@ void jogar()
         Questao questao = obterQuestao(jogador.pontuacao);
         
         if (questao.numAlternativas == 0 || questao.alternativas == NULL || questao.pergunta == NULL) {
-            printf("Erro: Questao invalida! Encerrando o jogo.\n");
+            printf("Erro: Questão inválida! Encerrando o jogo.\n");
             break;
         }
         
         embaralharAlternativas(questao, &alternativas, &numAlternativas);
         
         if (alternativas == NULL || numAlternativas == 0) {
-            printf("Erro: Falha ao processar questao! Encerrando o jogo.\n");
+            printf("Erro: Falha ao processar questão! Encerrando o jogo.\n");
             liberarQuestao(&questao);
             break;
         }
@@ -461,16 +468,16 @@ void jogar()
         if (jogador.vidas == 0)
         {
             puts("=================================");
-            printf("Game over - Voce ficou sem vidas\n");
-            printf("Nome: %s\nPontuacao: %d\n", jogador.nome, jogador.pontuacao);
+            printf("Game Over - Você ficou sem vidas\n");
+            printf("Nome: %s\nPontuação: %d\n", jogador.nome, jogador.pontuacao);
             puts("=================================");
             break;
         }
         else if (jogador.pontuacao == 5)
         {
             puts("==============================");
-            printf("Parabens! Voce ganhou o jogo!\n");
-            printf("Sua pontuacao foi: %d\n", jogador.pontuacao);
+            printf("Parabéns! Você ganhou o jogo!\n");
+            printf("Sua pontuação foi: %d\n", jogador.pontuacao);
             puts("==============================");
             break;
         }
