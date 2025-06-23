@@ -58,7 +58,7 @@ typedef struct
 typedef struct
 {
     char letra;
-    char texto[1000];
+    char *texto;
     int correta;
 } Alternativa;
 
@@ -78,6 +78,7 @@ int obterInicioTextoAlternativa(char *linha);
 void mostrarMenu();
 int lerOpcaoMenu();
 void jogar();
+void liberarAlternativasEmbaralhadas(Alternativa *alternativas, int numAlternativas);
 
 int main()
 {
@@ -123,8 +124,8 @@ void embaralharAlternativas(Questao questao, Alternativa **embaralhadas, int *nu
     
     for (int i = 0; i < questao.numAlternativas; i++)
     {
-        strncpy((*embaralhadas)[i].texto, questao.alternativas[i], sizeof((*embaralhadas)[i].texto) - 1);
-        (*embaralhadas)[i].texto[sizeof((*embaralhadas)[i].texto) - 1] = '\0';
+        (*embaralhadas)[i].texto = (char*)realloc(NULL, strlen(questao.alternativas[i]) + 1);
+        strcpy((*embaralhadas)[i].texto, questao.alternativas[i]);
         (*embaralhadas)[i].correta = (i == indicePosicaoCorreta) ? 1 : 0;
     }
 
@@ -454,7 +455,7 @@ void jogar()
             WAIT(1);
         }
 
-        free(alternativas);
+        liberarAlternativasEmbaralhadas(alternativas, numAlternativas);
         liberarQuestao(&questao);
 
         if (jogador.vidas == 0)
@@ -478,4 +479,17 @@ void jogar()
     printf("\nPressione Enter para voltar ao menu...");
     getchar();
     getchar();
+}
+
+void liberarAlternativasEmbaralhadas(Alternativa *alternativas, int numAlternativas)
+{
+    for (int i = 0; i < numAlternativas; i++)
+    {
+        if (alternativas[i].texto != NULL) {
+            free(alternativas[i].texto);
+        }
+    }
+    if (alternativas != NULL) {
+        free(alternativas);
+    }
 }
