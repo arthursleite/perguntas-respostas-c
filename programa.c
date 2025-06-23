@@ -73,6 +73,8 @@ void liberarQuestao(Questao *questao);
 void liberarListaQuestoes(ListaQuestoes *lista);
 void mostrarPontosEVidas(Jogador jogador);
 char lerRespostaValida(int numAlternativas);
+int verificaAlternativa(char *linha);
+int obterInicioTextoAlternativa(char *linha);
 void mostrarMenu();
 int lerOpcaoMenu();
 void jogar();
@@ -243,7 +245,7 @@ ListaQuestoes lerQuestoesDeArquivo(char *nomeArquivo)
     {
         linha[strcspn(linha, "\n")] = 0;
         
-        if (strlen(linha) > 0 && linha[0] != 'A' && linha[0] != 'B' && linha[0] != 'C' && linha[0] != 'D' && strncmp(linha, "RESPOSTA:", 9) != 0)
+        if (strlen(linha) > 0 && strncmp(linha, "RESPOSTA:", 9) != 0 && !verificaAlternativa(linha))
         {
             Questao questao;
             
@@ -262,11 +264,12 @@ ListaQuestoes lerQuestoesDeArquivo(char *nomeArquivo)
                     questao.respostaCorreta = linha[9];
                     break;
                 }
-                else if (strlen(linha) > 0 && (linha[0] == 'A' || linha[0] == 'B' || linha[0] == 'C' || linha[0] == 'D'))
+                else if (verificaAlternativa(linha))
                 {
                     questao.alternativas = (char **)realloc(questao.alternativas, (questao.numAlternativas + 1) * sizeof(char *));
-                    questao.alternativas[questao.numAlternativas] = (char *)realloc(NULL, strlen(linha + 3) + 1);
-                    strcpy(questao.alternativas[questao.numAlternativas], linha + 3);
+                    int inicioTexto = obterInicioTextoAlternativa(linha);
+                    questao.alternativas[questao.numAlternativas] = (char *)realloc(NULL, strlen(linha + inicioTexto) + 1);
+                    strcpy(questao.alternativas[questao.numAlternativas], linha + inicioTexto);
                     questao.numAlternativas++;
                 }
             }
@@ -311,6 +314,34 @@ void liberarListaQuestoes(ListaQuestoes *lista)
 void mostrarPontosEVidas(Jogador jogador) {
     printf("Pontos: %d\n", jogador.pontuacao);
     printf("Vidas restantes: %d\n\n", jogador.vidas);
+}
+
+int verificaAlternativa(char *linha)
+{
+    if (strlen(linha) < 3) return 0;
+    
+    char primeiroChar = linha[0];
+    char segundoChar = linha[1];
+    
+    if (primeiroChar >= 'A' && primeiroChar <= 'Z' && 
+        (segundoChar == ')' || segundoChar == ':' || segundoChar == '.')) {
+        return 1;
+    }
+    
+    return 0;
+}
+
+int obterInicioTextoAlternativa(char *linha)
+{
+    if (!verificaAlternativa(linha)) return 0;
+    
+    int posicao = 2;
+    
+    while (posicao < strlen(linha) && linha[posicao] == ' ') {
+        posicao++;
+    }
+    
+    return posicao;
 }
 
 char lerRespostaValida(int numAlternativas)
