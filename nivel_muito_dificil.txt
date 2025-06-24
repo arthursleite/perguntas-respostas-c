@@ -1,0 +1,20 @@
+Como funciona a 'Stack' e o 'Heap' em um programa C?
+A) Stack eh para dados dinamicos e Heap para dados automaticos.
+B) Stack eh para variaveis locais, Heap eh para dados dinamicos.
+C) Stack eh para alocacao dinamica, Heap eh para variaveis locais.
+D) Stack e Heap sao usados da mesma forma.
+RESPOSTA:B
+
+O que eh 'undefined behavior' em C?
+A) Um erro de compilacao.
+B) Quando o programa se comporta de forma imprevisivel.
+C) Um warning que nao afeta o programa.
+D) Um modo de otimizar codigo.
+RESPOSTA:B
+
+Qual eh o resultado do seguinte código em C?\n\nint matriz[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};\nint *ptr = (int *)matriz;\nprintf("%d", *(ptr + 5));
+A) 5
+B) 4
+C) 6
+D) 7
+RESPOSTA:C 

@@ -3,7 +3,36 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
-#include <windows.h>
+#include <locale.h>
+
+#ifdef _WIN32
+    #include <windows.h>
+    #define WAIT(x) Sleep((x) * 1000)
+#else
+    #include <unistd.h>
+    #define WAIT(x) sleep(x)
+#endif
+
+const char* NOMES_DIFICULDADE[] = {
+    "Muito fácil",
+    "Fácil", 
+    "Média",
+    "Difícil",
+    "Muito difícil"
+};
+
+const char* ARQUIVOS_DIFICULDADE[] = {
+    "nivel_muito_facil.txt",
+    "nivel_facil.txt",
+    "nivel_medio.txt", 
+    "nivel_dificil.txt",
+    "nivel_muito_dificil.txt"
+};
+
+typedef enum {
+    MENU_JOGAR = 1,
+    MENU_SAIR = 2
+} MenuOperacoes;
 
 typedef struct
 {
@@ -15,145 +44,124 @@ typedef struct
 
 typedef struct
 {
-    char pergunta[1000];
-    char opcaoCerta[1000];
-    char opcaoErrada1[1000];
-    char opcaoErrada2[1000];
-    char opcaoErrada3[1000];
+    char *pergunta;
+    char **alternativas;
+    int numAlternativas;
+    char respostaCorreta;
 } Questao;
 
 typedef struct
 {
-    Questao questoes[100];
+    Questao *questoes;
     int quantidadeQuestoes;
 } ListaQuestoes;
 
 typedef struct
 {
     char letra;
-    char texto[1000];
+    char *texto;
     int correta;
 } Alternativa;
 
-void embaralharAlternativas(Questao questao, Alternativa embaralhadas[4]);
-void mostrarQuestao(Questao questao, Alternativa alternativas[4]);
-int verificarResposta(Alternativa alternativas[4], char respostaUsuario);
-Questao obterQuestao(int pontuacao);
+void embaralharAlternativas(Questao questao, Alternativa **embaralhadas, int *numAlternativas);
+void mostrarQuestao(Questao questao, Alternativa *alternativas, int numAlternativas);
+int verificarResposta(Alternativa *alternativas, int numAlternativas, char respostaUsuario);
+Questao obterQuestao(int nivelDificuldade);
 Questao obterPergunta(ListaQuestoes lista);
 void adicionarQuestao(ListaQuestoes *lista, Questao questao);
-ListaQuestoes criarQuestoesMuitoFaceis();
-ListaQuestoes criarQuestoesFaceis();
-ListaQuestoes criarQuestoesMedias();
-ListaQuestoes criarQuestoesDificeis();
-ListaQuestoes criarQuestoesMuitoDificeis();
+ListaQuestoes lerQuestoesDeArquivo(char *nomeArquivo);
+void liberarQuestao(Questao *questao);
+void liberarListaQuestoes(ListaQuestoes *lista);
 void mostrarPontosEVidas(Jogador jogador);
+char lerRespostaValida(int numAlternativas);
+int verificaAlternativa(char *linha);
+int obterInicioTextoAlternativa(char *linha);
+void mostrarMenu();
+int lerOpcaoMenu();
+void jogar();
+void liberarAlternativasEmbaralhadas(Alternativa *alternativas, int numAlternativas);
 
 int main()
 {
-
-    printf("== Bem vindo ao Jogo de Perguntas e Respostas ==\n");
-    printf("Insira seu nome: \n > ");
-    Jogador jogador;
-    scanf("%s", jogador.nome);
-    printf("Cadastro realizado! Boa sorte, %s.\n\n", jogador.nome);
-    Sleep(1000);
-    jogador.pontuacao = 0;
-    jogador.vidas = 3;
-    while (jogador.vidas > 0)
-    {
-        char dificuldade[15];
-        Alternativa alternativas[4];
-
-        Questao questao = obterQuestao(jogador.pontuacao);
-        embaralharAlternativas(questao, alternativas);
-        mostrarQuestao(questao, alternativas);
-        int contador = 0;
-        do
-        {
-            if (contador > 0)
-            {
-                printf("Alternativa invalida! Digite novamente: \n");
-            }
-            printf(" > Letra: ");
-            scanf(" %c", &jogador.resposta);
-            jogador.resposta = toupper(jogador.resposta);
-            if (jogador.resposta < 65 || jogador.resposta > 68)
-            {
-                contador++;
-            }
-        } while (jogador.resposta < 65 || jogador.resposta > 68);
-
-        if (verificarResposta(alternativas, jogador.resposta) == 1)
-        {
-            jogador.pontuacao++;
-            printf("\nCerta resposta!\n");
-            mostrarPontosEVidas(jogador);
-            Sleep(1000);
+    setlocale(LC_ALL, "");
+    
+#ifdef _WIN32
+    SetConsoleOutputCP(65001);
+#endif
+    
+    printf("== Bem-vindo ao Jogo de Perguntas e Respostas ==\n\n");
+    
+    int opcao;
+    do {
+        mostrarMenu();
+        opcao = lerOpcaoMenu();
+        
+        if (opcao == -1) {
+            continue; 
         }
-        else
-        {
-            jogador.vidas--;
-            printf("\nResposta errada!\n");
-            mostrarPontosEVidas(jogador);
-            Sleep(1000);
+        
+        switch (opcao) {
+            case MENU_JOGAR:
+                jogar();
+                break;
+            case MENU_SAIR:
+                printf("\nObrigado por jogar! Até a próxima!\n");
+                break;
+            default:
+                printf("\nOpção inválida! Tente novamente.\n\n");
+                break;
         }
-
-        if (jogador.vidas == 0)
-        {
-            puts("=================================");
-            printf("Game over - Voce ficou sem vidas\n");
-            printf("Nome: %s\nPontuacao: %d\n", jogador.nome, jogador.pontuacao);
-            puts("=================================");
-            break;
-        }
-        else if (jogador.pontuacao == 5)
-        {
-            puts("==============================");
-            printf("Parabens! Voce ganhou o jogo!\n");
-            printf("Sua pontuacao foi: %d\n", jogador.pontuacao);
-            puts("==============================");
-            break;
-        }
-    }
+    } while (opcao != MENU_SAIR);
+    
+    return 0;
 }
 
-void embaralharAlternativas(Questao questao, Alternativa embaralhadas[4])
+void embaralharAlternativas(Questao questao, Alternativa **embaralhadas, int *numAlternativas)
 {
-    strcpy(embaralhadas[0].texto, questao.opcaoCerta);
-    embaralhadas[0].correta = 1;
-    strcpy(embaralhadas[1].texto, questao.opcaoErrada1);
-    embaralhadas[1].correta = 0;
-    strcpy(embaralhadas[2].texto, questao.opcaoErrada2);
-    embaralhadas[2].correta = 0;
-    strcpy(embaralhadas[3].texto, questao.opcaoErrada3);
-    embaralhadas[3].correta = 0;
+    if (questao.numAlternativas == 0 || questao.alternativas == NULL) {
+        *numAlternativas = 0;
+        *embaralhadas = NULL;
+        return;
+    }
+    
+    *numAlternativas = questao.numAlternativas;
+    *embaralhadas = (Alternativa *)realloc(NULL, questao.numAlternativas * sizeof(Alternativa));
+    
+    int indicePosicaoCorreta = questao.respostaCorreta - 'A';
+    
+    for (int i = 0; i < questao.numAlternativas; i++)
+    {
+        (*embaralhadas)[i].texto = (char*)realloc(NULL, strlen(questao.alternativas[i]) + 1);
+        strcpy((*embaralhadas)[i].texto, questao.alternativas[i]);
+        (*embaralhadas)[i].correta = (i == indicePosicaoCorreta) ? 1 : 0;
+    }
 
     srand(time(NULL));
-    for (int i = 3; i > 0; i--)
+    for (int i = questao.numAlternativas - 1; i > 0; i--)
     {
         int j = rand() % (i + 1);
-        Alternativa temp = embaralhadas[i];
-        embaralhadas[i] = embaralhadas[j];
-        embaralhadas[j] = temp;
+        Alternativa temp = (*embaralhadas)[i];
+        (*embaralhadas)[i] = (*embaralhadas)[j];
+        (*embaralhadas)[j] = temp;
     }
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < questao.numAlternativas; i++)
     {
-        embaralhadas[i].letra = 'A' + i;
+        (*embaralhadas)[i].letra = 'A' + i;
     }
 }
 
-void mostrarQuestao(Questao questao, Alternativa alternativas[4])
+void mostrarQuestao(Questao questao, Alternativa *alternativas, int numAlternativas)
 {
     printf("%s\n", questao.pergunta);
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < numAlternativas; i++)
     {
         printf("%c: %s\n", alternativas[i].letra, alternativas[i].texto);
     }
 }
 
-int verificarResposta(Alternativa alternativas[4], char respostaUsuario)
+int verificarResposta(Alternativa *alternativas, int numAlternativas, char respostaUsuario)
 {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < numAlternativas; i++)
     {
         if (alternativas[i].letra == respostaUsuario)
         {
@@ -163,225 +171,332 @@ int verificarResposta(Alternativa alternativas[4], char respostaUsuario)
     return 0;
 }
 
-Questao obterQuestao(int pontuacao)
+Questao obterQuestao(int nivelDificuldade)
 {
-    if (pontuacao == 0)
-    {
-        puts("> Dificuldade: Muito facil");
-        ListaQuestoes lista = criarQuestoesMuitoFaceis();
-        Questao questaoMuitoFacil = obterPergunta(lista);
-        return questaoMuitoFacil;
+    int numNiveis = sizeof(NOMES_DIFICULDADE) / sizeof(NOMES_DIFICULDADE[0]);
+    if (nivelDificuldade < 0 || nivelDificuldade >= numNiveis) {
+        nivelDificuldade = 0;
     }
-    else if (pontuacao == 1)
-    {
-        puts("> Dificuldade: Facil");
-        ListaQuestoes lista = criarQuestoesFaceis();
-        Questao questaoFacil = obterPergunta(lista);
-        return questaoFacil;
+    
+    const char* nomeDificuldade = NOMES_DIFICULDADE[nivelDificuldade];
+    const char* nomeArquivo = ARQUIVOS_DIFICULDADE[nivelDificuldade];
+    
+    printf("> Dificuldade: %s\n", nomeDificuldade);
+    
+    ListaQuestoes lista = lerQuestoesDeArquivo((char*)nomeArquivo);
+    
+    if (lista.quantidadeQuestoes == 0) {
+        Questao questaoVazia = {0};
+        return questaoVazia;
     }
-    else if (pontuacao == 2)
-    {
-        puts("> Dificuldade: Media");
-        ListaQuestoes lista = criarQuestoesMedias();
-        Questao questaoMedia = obterPergunta(lista);
-        return questaoMedia;
+    
+    Questao questao = obterPergunta(lista);
+    
+    
+    Questao questaoCopiada;
+    
+    
+    questaoCopiada.pergunta = (char*)realloc(NULL, strlen(questao.pergunta) + 1);
+    strcpy(questaoCopiada.pergunta, questao.pergunta);
+    
+    questaoCopiada.numAlternativas = questao.numAlternativas;
+    questaoCopiada.respostaCorreta = questao.respostaCorreta;
+    
+   
+    questaoCopiada.alternativas = (char**)realloc(NULL, questao.numAlternativas * sizeof(char*));
+    
+    for (int i = 0; i < questao.numAlternativas; i++) {
+        questaoCopiada.alternativas[i] = (char*)realloc(NULL, strlen(questao.alternativas[i]) + 1);
+        strcpy(questaoCopiada.alternativas[i], questao.alternativas[i]);
     }
-    else if (pontuacao == 3)
-    {
-        puts("> Dificuldade: Dificil");
-        ListaQuestoes lista = criarQuestoesDificeis();
-        Questao questaoDificil = obterPergunta(lista);
-        return questaoDificil;
-    }
-    else if (pontuacao == 4)
-    {
-        puts("> Dificuldade: Muito dificil");
-        ListaQuestoes lista = criarQuestoesMuitoDificeis();
-        Questao questaoMuitoDificil = obterPergunta(lista);
-        return questaoMuitoDificil;
-    }
-    else
-    {
-        fprintf(stderr, "Erro: dificuldade inválida.\n");
-        exit(EXIT_FAILURE);
-    }
+    
+    
+    liberarListaQuestoes(&lista);
+    
+    return questaoCopiada;
 }
 
 Questao obterPergunta(ListaQuestoes lista)
 {
+    if (lista.quantidadeQuestoes == 0) {
+        printf("Erro: Nenhuma questao encontrada no arquivo!\n");
+        Questao questaoVazia = {0};
+        return questaoVazia;
+    }
+    
     srand(time(NULL));
     int i = rand() % lista.quantidadeQuestoes;
     return lista.questoes[i];
 }
 
-void adicionarQuestao(ListaQuestoes *lista, Questao questao)
-{
+void adicionarQuestao(ListaQuestoes *lista, Questao questao) {
+    lista->questoes = (Questao *)realloc(lista->questoes, (lista->quantidadeQuestoes + 1) * sizeof(Questao));
     lista->questoes[lista->quantidadeQuestoes] = questao;
     lista->quantidadeQuestoes++;
 }
 
-ListaQuestoes criarQuestoesMuitoFaceis()
+ListaQuestoes lerQuestoesDeArquivo(char *nomeArquivo)
 {
     ListaQuestoes lista;
     lista.quantidadeQuestoes = 0;
-
-    Questao q1;
-    strcpy(q1.pergunta, "Qual eh o tipo de dado usado para armazenar valores inteiros em C?");
-    strcpy(q1.opcaoCerta, "int");
-    strcpy(q1.opcaoErrada1, "char");
-    strcpy(q1.opcaoErrada2, "bool");
-    strcpy(q1.opcaoErrada3, "float");
-    adicionarQuestao(&lista, q1);
-
-    Questao q2;
-    strcpy(q2.pergunta, "Qual funcao padrao da linguagem C eh usada para ler a entrada do usuario?");
-    strcpy(q2.opcaoCerta, "scanf");
-    strcpy(q2.opcaoErrada1, "printf");
-    strcpy(q2.opcaoErrada2, "input");
-    strcpy(q2.opcaoErrada3, "puts");
-    adicionarQuestao(&lista, q2);
-
-    Questao q3;
-    strcpy(q3.pergunta, "Qual simbolo eh usado para comentar uma linha de codigo em C?");
-    strcpy(q3.opcaoCerta, "//");
-    strcpy(q3.opcaoErrada1, "/*");
-    strcpy(q3.opcaoErrada2, "#");
-    strcpy(q3.opcaoErrada3, "--");
-    adicionarQuestao(&lista, q3);
-
+    lista.questoes = NULL;
+    
+    FILE *arquivo = fopen(nomeArquivo, "r");
+    if (arquivo == NULL)
+    {
+        printf("Erro ao abrir o arquivo %s\n", nomeArquivo);
+        return lista;
+    }
+    
+    char linha[1000];
+    while (fgets(linha, sizeof(linha), arquivo))
+    {
+        linha[strcspn(linha, "\n")] = 0;
+        
+        if (strlen(linha) > 0 && strncmp(linha, "RESPOSTA:", 9) != 0 && !verificaAlternativa(linha))
+        {
+            Questao questao;
+            
+            questao.pergunta = (char*)realloc(NULL, strlen(linha) + 1);
+            strcpy(questao.pergunta, linha);
+            
+            questao.alternativas = NULL;
+            questao.numAlternativas = 0;
+            
+            while (fgets(linha, sizeof(linha), arquivo))
+            {
+                linha[strcspn(linha, "\n")] = 0;
+                
+                if (strncmp(linha, "RESPOSTA:", 9) == 0)
+                {
+                    questao.respostaCorreta = linha[9];
+                    break;
+                }
+                else if (verificaAlternativa(linha))
+                {
+                    questao.alternativas = (char **)realloc(questao.alternativas, (questao.numAlternativas + 1) * sizeof(char *));
+                    int inicioTexto = obterInicioTextoAlternativa(linha);
+                    questao.alternativas[questao.numAlternativas] = (char *)realloc(NULL, strlen(linha + inicioTexto) + 1);
+                    strcpy(questao.alternativas[questao.numAlternativas], linha + inicioTexto);
+                    questao.numAlternativas++;
+                }
+            }
+            
+            adicionarQuestao(&lista, questao);
+        }
+    }
+    
+    fclose(arquivo);
     return lista;
 }
 
-ListaQuestoes criarQuestoesFaceis()
+void liberarQuestao(Questao *questao)
 {
-    ListaQuestoes lista;
-    lista.quantidadeQuestoes = 0;
-
-    Questao q1;
-    strcpy(q1.pergunta, "Como declarar um array de 5 numeros inteiros em C?");
-    strcpy(q1.opcaoCerta, "int array[5];");
-    strcpy(q1.opcaoErrada1, "array int[5];");
-    strcpy(q1.opcaoErrada2, "int[] array = new int[5];");
-    strcpy(q1.opcaoErrada3, "int array = {5};");
-    adicionarQuestao(&lista, q1);
-
-    Questao q2;
-    strcpy(q2.pergunta, "Qual estrutura de repeticao eh ideal quando o numero de iteracoes eh conhecido?");
-    strcpy(q2.opcaoCerta, "for");
-    strcpy(q2.opcaoErrada1, "while;");
-    strcpy(q2.opcaoErrada2, "do-while");
-    strcpy(q2.opcaoErrada3, "repeat");
-    adicionarQuestao(&lista, q2);
-
-    Questao q3;
-    strcpy(q3.pergunta, "Para que serve a diretiva #include?");
-    strcpy(q3.opcaoCerta, "Incluir bibliotecas externas.");
-    strcpy(q3.opcaoErrada1, "Declarar variaveis.");
-    strcpy(q3.opcaoErrada2, "Definir funcoes.");
-    strcpy(q3.opcaoErrada3, "Declarar variaveis constantes no programa.");
-    adicionarQuestao(&lista, q3);
-
-    return lista;
+    if (questao->pergunta != NULL) {
+        free(questao->pergunta);
+        questao->pergunta = NULL;
+    }
+    
+    for (int i = 0; i < questao->numAlternativas; i++)
+    {
+        if (questao->alternativas[i] != NULL) {
+            free(questao->alternativas[i]);
+        }
+    }
+    if (questao->alternativas != NULL) {
+        free(questao->alternativas);
+        questao->alternativas = NULL;
+    }
+    questao->numAlternativas = 0;
 }
 
-ListaQuestoes criarQuestoesMedias()
+void liberarListaQuestoes(ListaQuestoes *lista)
 {
-    ListaQuestoes lista;
-    lista.quantidadeQuestoes = 0;
-
-    Questao q1;
-    strcpy(q1.pergunta, "O que o seguinte trecho de codigo imprime?\nchar *str = \"Hello\";\nprintf(\"%c\", *(str + 2));\n");
-    strcpy(q1.opcaoCerta, "l");
-    strcpy(q1.opcaoErrada1, "H");
-    strcpy(q1.opcaoErrada2, "e");
-    strcpy(q1.opcaoErrada3, "o");
-    adicionarQuestao(&lista, q1);
-
-    Questao q2;
-    strcpy(q2.pergunta, "O que a funcao sizeof retorna em C?");
-    strcpy(q2.opcaoCerta, "O numero de bytes ocupado por um tipo ou variavel.");
-    strcpy(q2.opcaoErrada1, "A quantidade de variáveis declaradas.");
-    strcpy(q2.opcaoErrada2, "A capacidade máxima de memória do computador.");
-    strcpy(q2.opcaoErrada3, "O valor armazenado em uma variável.");
-    adicionarQuestao(&lista, q2);
-
-    Questao q3;
-    strcpy(q3.pergunta, "Qual operador bitwise eh usado para inverter os bits de um numero?");
-    strcpy(q3.opcaoCerta, "~ (NOT)");
-    strcpy(q3.opcaoErrada1, "| (OR)");
-    strcpy(q3.opcaoErrada2, "& (AND)");
-    strcpy(q3.opcaoErrada3, "^ (XOR)");
-    adicionarQuestao(&lista, q3);
-
-    return lista;
+    for (int i = 0; i < lista->quantidadeQuestoes; i++)
+    {
+        liberarQuestao(&lista->questoes[i]);
+    }
+    free(lista->questoes);
 }
 
-ListaQuestoes criarQuestoesDificeis()
-{
-    ListaQuestoes lista;
-    lista.quantidadeQuestoes = 0;
-
-    Questao q1;
-    strcpy(q1.pergunta, "Qual tipo de memoria eh usada para armazenar variaveis locais dentro de funcoes em C?");
-    strcpy(q1.opcaoCerta, "Pilha (stack).");
-    strcpy(q1.opcaoErrada1, "Heap.");
-    strcpy(q1.opcaoErrada2, "Memoria global.");
-    strcpy(q1.opcaoErrada3, "Memoria flash.");
-    adicionarQuestao(&lista, q1);
-
-    Questao q2;
-    strcpy(q2.pergunta, "Qual a importancia do uso de const em parametros de funcoes?");
-    strcpy(q2.opcaoCerta, "Garantir que o parametro nao sera modificado.");
-    strcpy(q2.opcaoErrada1, "Aumentar a velocidade da funcao.");
-    strcpy(q2.opcaoErrada2, "Permitir que o valor seja alterado.");
-    strcpy(q2.opcaoErrada3, "Memoria flash.");
-    adicionarQuestao(&lista, q2);
-
-    Questao q3;
-    strcpy(q3.pergunta, "Qual eh o principal risco de usar recursao em profundidade (ex: calculo fatorial para 'n' grande) em C?");
-    strcpy(q3.opcaoCerta, "Stack overflow devido ao excesso de chamadas aninhadas");
-    strcpy(q3.opcaoErrada1, "Integer overflow no resultado");
-    strcpy(q3.opcaoErrada2, "Corrupcao de memoria no heap");
-    strcpy(q3.opcaoErrada3, "Loop infinito se a condicao de parada for mal definida");
-    adicionarQuestao(&lista, q3);
-
-    return lista;
-}
-
-ListaQuestoes criarQuestoesMuitoDificeis()
-{
-    ListaQuestoes lista;
-    lista.quantidadeQuestoes = 0;
-
-    Questao q1;
-    strcpy(q1.pergunta, "Como funciona a 'Stack' e o 'Heap' em um programa C?");
-    strcpy(q1.opcaoCerta, "Stack eh para variaveis locais, Heap eh para dados dinamicos.");
-    strcpy(q1.opcaoErrada1, "Stack eh para dados dinamicos e Heap para dados automaticos.");
-    strcpy(q1.opcaoErrada2, "Stack eh para alocacao dinamica, Heap eh para variaveis locais.");
-    strcpy(q1.opcaoErrada3, "Stack e Heap sao usados da mesma forma.");
-    adicionarQuestao(&lista, q1);
-
-    Questao q2;
-    strcpy(q2.pergunta, "O que eh 'undefined behavior' em C?");
-    strcpy(q2.opcaoCerta, "Quando o programa se comporta de forma imprevisivel.");
-    strcpy(q2.opcaoErrada1, "Um erro de compilacao.");
-    strcpy(q2.opcaoErrada2, "Um warning que nao afeta o programa.");
-    strcpy(q2.opcaoErrada3, "Um modo de otimizar codigo.");
-    adicionarQuestao(&lista, q2);
-
-    Questao q3;
-    strcpy(q3.pergunta, "Qual eh o resultado do seguinte codigo em C?\n\nint matriz[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};\nint *ptr = (int *)matriz;\nprintf(\"%d\", *(ptr + 5));");
-    strcpy(q3.opcaoCerta, "6");
-    strcpy(q3.opcaoErrada1, "5");
-    strcpy(q3.opcaoErrada2, "4");
-    strcpy(q3.opcaoErrada3, "7");
-    adicionarQuestao(&lista, q3);
-
-    return lista;
-}
-
-void mostrarPontosEVidas(Jogador jogador)
-{
+void mostrarPontosEVidas(Jogador jogador) {
     printf("Pontos: %d\n", jogador.pontuacao);
     printf("Vidas restantes: %d\n\n", jogador.vidas);
+}
+
+int verificaAlternativa(char *linha)
+{
+    if (strlen(linha) < 3) return 0;
+    
+    char primeiroChar = linha[0];
+    char segundoChar = linha[1];
+    
+    if (primeiroChar >= 'A' && primeiroChar <= 'Z' && 
+        (segundoChar == ')' || segundoChar == ':' || segundoChar == '.')) {
+        return 1;
+    }
+    
+    return 0;
+}
+
+int obterInicioTextoAlternativa(char *linha)
+{
+    if (!verificaAlternativa(linha)) return 0;
+    
+    int posicao = 2;
+    
+    while (posicao < strlen(linha) && linha[posicao] == ' ') {
+        posicao++;
+    }
+    
+    return posicao;
+}
+
+char lerRespostaValida(int numAlternativas)
+{
+    char resposta;
+    int leituraOk;
+    do
+    {
+        printf(" > Letra: ");
+        leituraOk = scanf(" %c", &resposta);
+        
+        if (leituraOk != 1) {
+            printf("Erro ao ler resposta! Tentando novamente...\n");
+            
+            int c;
+            while ((c = getchar()) != '\n' && c != EOF);
+            continue;
+        }
+        
+        resposta = toupper(resposta);
+        if (resposta < 'A' || resposta > 'A' + numAlternativas - 1)
+        {
+            printf("Resposta inválida. Por favor, escolha uma letra válida.\n");
+        }
+    } while (resposta < 'A' || resposta > 'A' + numAlternativas - 1);
+    return resposta;
+}
+
+void mostrarMenu()
+{
+    printf("======= MENU PRINCIPAL =======\n");
+    printf("%d - Jogar\n", MENU_JOGAR);
+    printf("%d - Sair\n", MENU_SAIR);
+    printf("==============================\n");
+}
+
+int lerOpcaoMenu()
+{
+    int opcao;
+    printf("Escolha uma opção: ");
+    if (scanf("%d", &opcao) != 1) {
+        printf("Entrada inválida! Digite um número.\n");
+        int c;
+        while ((c = getchar()) != '\n' && c != EOF);
+        return -1; 
+    }
+    return opcao;
+}
+
+void jogar()
+{
+    printf("\nInsira seu nome: \n > ");
+    Jogador jogador;
+    
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+    
+    if (fgets(jogador.nome, sizeof(jogador.nome), stdin) == NULL) {
+        printf("Erro ao ler nome do jogador!\n");
+        return;
+    }
+    
+    jogador.nome[strcspn(jogador.nome, "\n")] = 0;
+    
+    if (strlen(jogador.nome) == 0) {
+        strcpy(jogador.nome, "Jogador");
+    }
+    
+    printf("Cadastro realizado! Boa sorte, %s.\n\n", jogador.nome);
+    WAIT(1);
+    jogador.pontuacao = 0;
+    jogador.vidas = 3;
+    
+    while (jogador.vidas > 0)
+    {
+        Alternativa *alternativas;
+        int numAlternativas;
+        
+        Questao questao = obterQuestao(jogador.pontuacao);
+        
+        if (questao.numAlternativas == 0 || questao.alternativas == NULL || questao.pergunta == NULL) {
+            printf("Erro: Questão inválida! Encerrando o jogo.\n");
+            break;
+        }
+        
+        embaralharAlternativas(questao, &alternativas, &numAlternativas);
+        
+        if (alternativas == NULL || numAlternativas == 0) {
+            printf("Erro: Falha ao processar questão! Encerrando o jogo.\n");
+            liberarQuestao(&questao);
+            break;
+        }
+        
+        mostrarQuestao(questao, alternativas, numAlternativas);
+        
+        jogador.resposta = lerRespostaValida(numAlternativas);
+        
+        if (verificarResposta(alternativas, numAlternativas, jogador.resposta) == 1)
+        {
+            jogador.pontuacao++;
+            printf("\nCerta resposta!\n");
+            mostrarPontosEVidas(jogador);
+            WAIT(1);
+        }
+        else
+        {
+            jogador.vidas--;
+            printf("\nResposta errada!\n");
+            mostrarPontosEVidas(jogador);
+            WAIT(1);
+        }
+
+        liberarAlternativasEmbaralhadas(alternativas, numAlternativas);
+        liberarQuestao(&questao);
+
+        if (jogador.vidas == 0)
+        {
+            puts("=================================");
+            printf("Game Over - Você ficou sem vidas\n");
+            printf("Nome: %s\nPontuação: %d\n", jogador.nome, jogador.pontuacao);
+            puts("=================================");
+            break;
+        }
+        else if (jogador.pontuacao == 5)
+        {
+            puts("==============================");
+            printf("Parabéns! Você ganhou o jogo!\n");
+            printf("Sua pontuação foi: %d\n", jogador.pontuacao);
+            puts("==============================");
+            break;
+        }
+    }
+    
+    printf("\nPressione Enter para voltar ao menu...");
+    getchar();
+    getchar();
+}
+
+void liberarAlternativasEmbaralhadas(Alternativa *alternativas, int numAlternativas)
+{
+    for (int i = 0; i < numAlternativas; i++)
+    {
+        if (alternativas[i].texto != NULL) {
+            free(alternativas[i].texto);
+        }
+    }
+    if (alternativas != NULL) {
+        free(alternativas);
+    }
 }

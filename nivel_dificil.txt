@@ -1,0 +1,20 @@
+Qual tipo de memoria eh usada para armazenar variaveis locais dentro de funcoes em C?
+A) Heap.
+B) Pilha (stack).
+C) Memoria global.
+D) Memoria flash.
+RESPOSTA:B
+
+Qual a importancia do uso de const em parametros de funcoes?
+A) Aumentar a velocidade da funcao.
+B) Permitir que o valor seja alterado.
+C) Garantir que o parametro nao sera modificado.
+D) Memoria flash.
+RESPOSTA:C
+
+Qual eh o principal risco de usar recursao em profundidade (ex: calculo fatorial para 'n' grande) em C?
+A) Integer overflow no resultado
+B) Stack overflow devido ao excesso de chamadas aninhadas
+C) Corrupcao de memoria no heap
+D) Loop infinito se a condicao de parada for mal definida
+RESPOSTA:B 

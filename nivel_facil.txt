@@ -1,0 +1,20 @@
+Como declarar um array de 5 numeros inteiros em C?
+A) int array[5];
+B) array int[5];
+C) int[] array = new int[5];
+D) int array = {5};
+RESPOSTA:A
+
+Qual estrutura de repeticao eh ideal quando o numero de iteracoes eh conhecido?
+A) while
+B) for
+C) do-while
+D) repeat
+RESPOSTA:B
+
+Para que serve a diretiva #include?
+A) Declarar variaveis.
+B) Definir funcoes.
+C) Incluir bibliotecas externas.
+D) Declarar variaveis constantes no programa.
+RESPOSTA:C 
